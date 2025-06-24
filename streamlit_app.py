@@ -8,9 +8,121 @@ import plotly.express as px
 # 페이지 설정
 st.set_page_config(
     page_title="Daily Planner",
-    page_icon="📅",
-    layout="wide"
+    page_icon="��",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+# CSS 스타일
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #2C3E50;
+        text-align: center;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .date-header {
+        font-size: 1.8rem;
+        color: #34495E;
+        text-align: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .date-header:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+    .task-input {
+        background-color: #F8F9FA;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border: 2px solid #E9ECEF;
+        transition: border-color 0.3s ease;
+    }
+    .task-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .time-slot {
+        background-color: #FFFFFF;
+        border: 1px solid #E9ECEF;
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .time-slot:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    .completed {
+        background-color: #D4EDDA;
+        text-decoration: line-through;
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+    .block-task {
+        background-color: #E3F2FD;
+        border-left: 4px solid #2196F3;
+        position: relative;
+    }
+    .block-task::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(135deg, #2196F3, #21CBF3);
+    }
+    .stats-card {
+        background-color: #F8F9FA;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+        border: 1px solid #E9ECEF;
+        transition: all 0.3s ease;
+    }
+    .stats-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .stButton > button {
+        border-radius: 20px;
+        border: none;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .sidebar .stButton > button {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+    }
+    .sidebar .stButton > button:hover {
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # 세션 상태 초기화
 if 'authenticated' not in st.session_state:
@@ -19,6 +131,12 @@ if 'current_user' not in st.session_state:
     st.session_state.current_user = None
 if 'user_password' not in st.session_state:
     st.session_state.user_password = None
+if 'selected_date' not in st.session_state:
+    st.session_state.selected_date = date.today()
+if 'tasks' not in st.session_state:
+    st.session_state.tasks = {}
+if 'show_date_picker' not in st.session_state:
+    st.session_state.show_date_picker = False
 
 def get_user_data_file(username):
     return f"data_{username}.json"
