@@ -23,18 +23,39 @@ st.markdown("""
         color: #2C3E50;
         text-align: center;
         margin-bottom: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     .date-header {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         color: #34495E;
         text-align: center;
         margin-bottom: 1rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .date-header:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
     }
     .task-input {
         background-color: #F8F9FA;
         padding: 1rem;
         border-radius: 10px;
         margin-bottom: 1rem;
+        border: 2px solid #E9ECEF;
+        transition: border-color 0.3s ease;
+    }
+    .task-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
     .time-slot {
         background-color: #FFFFFF;
@@ -42,21 +63,64 @@ st.markdown("""
         border-radius: 8px;
         padding: 0.5rem;
         margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .time-slot:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
     }
     .completed {
         background-color: #D4EDDA;
         text-decoration: line-through;
         color: #155724;
+        border-left: 4px solid #28a745;
     }
     .block-task {
         background-color: #E3F2FD;
         border-left: 4px solid #2196F3;
+        position: relative;
+    }
+    .block-task::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(135deg, #2196F3, #21CBF3);
     }
     .stats-card {
         background-color: #F8F9FA;
         padding: 1rem;
         border-radius: 10px;
         margin: 0.5rem 0;
+        border: 1px solid #E9ECEF;
+        transition: all 0.3s ease;
+    }
+    .stats-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .stButton > button {
+        border-radius: 20px;
+        border: none;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .sidebar .stButton > button {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+    }
+    .sidebar .stButton > button:hover {
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -66,6 +130,8 @@ if 'selected_date' not in st.session_state:
     st.session_state.selected_date = date.today()
 if 'tasks' not in st.session_state:
     st.session_state.tasks = {}
+if 'show_date_picker' not in st.session_state:
+    st.session_state.show_date_picker = False
 
 def load_tasks(date_obj):
     """특정 날짜의 작업을 로드"""
@@ -113,17 +179,51 @@ def main():
     # 사이드바 - 날짜 선택 및 블록 작업
     with st.sidebar:
         st.header("📅 날짜 선택")
-        selected_date = st.date_input(
-            "날짜를 선택하세요",
-            value=st.session_state.selected_date,
-            format="YYYY-MM-DD"
-        )
         
-        if selected_date != st.session_state.selected_date:
-            st.session_state.selected_date = selected_date
-            st.rerun()
+        # 날짜 표시 및 클릭 가능한 버튼
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown(f"**{selected_date.strftime('%Y년 %m월 %d일')}**")
+            st.markdown(f"*{selected_date.strftime('%A')}*")
+        with col2:
+            if st.button("📅", help="날짜 변경"):
+                st.session_state.show_date_picker = not st.session_state.show_date_picker
         
-        st.markdown(f"**선택된 날짜:** {selected_date.strftime('%Y년 %m월 %d일 (%A)')}")
+        # 날짜 선택기 (토글)
+        if st.session_state.show_date_picker:
+            new_date = st.date_input(
+                "날짜를 선택하세요",
+                value=selected_date,
+                format="YYYY-MM-DD",
+                key="date_picker"
+            )
+            
+            if new_date != selected_date:
+                st.session_state.selected_date = new_date
+                st.session_state.show_date_picker = False
+                st.rerun()
+        
+        # 빠른 날짜 이동 버튼들
+        st.subheader("🚀 빠른 이동")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("어제"):
+                st.session_state.selected_date = selected_date - timedelta(days=1)
+                st.rerun()
+            if st.button("내일"):
+                st.session_state.selected_date = selected_date + timedelta(days=1)
+                st.rerun()
+        with col2:
+            if st.button("오늘"):
+                st.session_state.selected_date = date.today()
+                st.rerun()
+            if st.button("이번주"):
+                today = date.today()
+                start_of_week = today - timedelta(days=today.weekday())
+                st.session_state.selected_date = start_of_week
+                st.rerun()
+        
+        st.divider()
         
         # 블록 작업 추가
         st.header("🔧 블록 작업 추가")
@@ -184,7 +284,29 @@ def add_block_task(date_obj, text, start_time, end_time):
 
 def show_daily_planner(date_obj, tasks):
     """일일 플래너 표시"""
-    st.markdown(f'<h2 class="date-header">{date_obj.strftime("%Y년 %m월 %d일 (%A)")}</h2>', unsafe_allow_html=True)
+    # 클릭 가능한 날짜 헤더
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        st.markdown(f'<h2 class="date-header">{date_obj.strftime("%Y년 %m월 %d일 (%A)")}</h2>', unsafe_allow_html=True)
+    with col2:
+        if st.button("📅 날짜 변경", key="header_date_picker"):
+            st.session_state.show_date_picker = not st.session_state.show_date_picker
+            st.rerun()
+    
+    # 날짜 선택기가 열려있으면 표시
+    if st.session_state.show_date_picker:
+        with st.expander("날짜 선택", expanded=True):
+            new_date = st.date_input(
+                "날짜를 선택하세요",
+                value=date_obj,
+                format="YYYY-MM-DD",
+                key="main_date_picker"
+            )
+            
+            if new_date != date_obj:
+                st.session_state.selected_date = new_date
+                st.session_state.show_date_picker = False
+                st.rerun()
     
     # 시간대별로 그룹화
     sections = {"새벽": [], "오전": [], "오후": [], "밤": []}
